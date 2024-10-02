@@ -4,18 +4,39 @@ import plotly.express as px
 import numpy as np  # Needed for logarithmic transformation
 from streamlit_plotly_events import plotly_events
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+import requests  # For fetching CSV from URL
+from io import StringIO  # For handling CSV data from URL
 
 # Set up the page layout
 st.set_page_config(layout="wide")
 
-# Prompt the user to upload a CSV file
+# Add input options for file upload and URL
+st.write("You can upload a CSV file or provide a URL to a CSV file.")
 uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+csv_url = st.text_input("Or enter the URL of a CSV file")
 
-# Check if a file was uploaded
+# Initialize dataframe
+df = None
+
+# Check if a CSV file was uploaded
 if uploaded_file is not None:
     # Load the uploaded CSV file
     df = pd.read_csv(uploaded_file)
+elif csv_url:
+    # Check if the URL is provided, fetch and load CSV data
+    try:
+        response = requests.get(csv_url)
+        response.raise_for_status()  # Check if the URL fetch was successful
+        csv_data = StringIO(response.text)
+        df = pd.read_csv(csv_data)
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error fetching the CSV file from the URL: {e}")
+        df = None
 
+# If no data is loaded, show a message
+if df is None:
+    st.write("Please upload a CSV file or provide a valid CSV URL to load the data.")
+else:
     # Remove rows where the 'unique_id' column is empty or missing
     df = df[df['unique_id'].notna()]
 
@@ -35,7 +56,7 @@ if uploaded_file is not None:
         x='vote_sum',
         y='IAA_score',
         size='log_count',  # Size based on log-scaled count
-        title='IAA Score vs Vote Sum (Counts Log Scaled)',
+        title='IAA Score vs Vote Sum (Logarithmic Scaling)',
         hover_data=df.columns
     )
 
@@ -84,7 +105,7 @@ if uploaded_file is not None:
         # Add a download button for the edited data
         csv = edited_df.to_csv(index=False)  # Convert the edited data to CSV
         st.download_button(
-            label="Download filtered/edited data as 'edited_data.csv'",
+            label="Download edited data as CSV",
             data=csv,
             file_name='edited_data.csv',
             mime='text/csv',
