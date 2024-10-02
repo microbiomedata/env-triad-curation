@@ -35,7 +35,7 @@ if uploaded_file is not None:
         x='vote_sum',
         y='IAA_score',
         size='log_count',  # Size based on log-scaled count
-        title='IAA Score vs Vote Sum (Logarithmic Scaling)',
+        title='IAA Score vs Vote Sum (Counts Log Scaled)',
         hover_data=df.columns
     )
 
