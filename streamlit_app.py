@@ -84,7 +84,7 @@ if uploaded_file is not None:
         # Add a download button for the edited data
         csv = edited_df.to_csv(index=False)  # Convert the edited data to CSV
         st.download_button(
-            label="Download edited data as CSV",
+            label="Download filtered/edited data as 'edited_data.csv'",
             data=csv,
             file_name='edited_data.csv',
             mime='text/csv',
